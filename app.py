@@ -2,7 +2,9 @@ import os
 import base64
 import json
 import re
-import fitz
+import io
+from pypdf import PdfReader
+from PIL import Image
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from groq import Groq
@@ -20,34 +22,28 @@ MAX_TEXT_LENGTH = 12000
 
 
 def extract_text_from_pdf(file_bytes):
-    doc = fitz.open(stream=file_bytes, filetype="pdf")
+    reader = PdfReader(io.BytesIO(file_bytes))
     text = ""
-    for page in doc:
-        text += page.get_text()
-    doc.close()
+    for page in reader.pages:
+        text += page.extract_text() or ""
     return text.strip()
 
 
 def ocr_with_gemini(file_bytes):
-    doc = fitz.open(stream=file_bytes, filetype="pdf")
+    reader = PdfReader(io.BytesIO(file_bytes))
     all_text = []
 
-    for page_num in range(len(doc)):
-        page = doc[page_num]
-        pix = page.get_pixmap(dpi=150)
-        img_bytes = pix.tobytes("jpeg")
-        img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+    for page in reader.pages:
+        img_list = page.images
+        for img in img_list:
+            img_bytes = img.data
+            img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+            response = gemini_model.generate_content([
+                {"mime_type": "image/jpeg", "data": img_b64},
+                "Transcribe all text from this image exactly."
+            ])
+            all_text.append(response.text or "")
 
-        response = gemini_model.generate_content([
-            {
-                "mime_type": "image/jpeg",
-                "data": img_b64
-            },
-            "Transcribe all text from this page exactly. For tables use plain text. Ignore decorative elements."
-        ])
-        all_text.append(response.text or "")
-
-    doc.close()
     return "\n\n".join(all_text).strip()
 
 
