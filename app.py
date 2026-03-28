@@ -19,21 +19,11 @@ groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 
-<<<<<<< HEAD
 MAX_TEXT_LENGTH = 12000  # groq has a context limit cutting off at 12000 chars was the best balance of performance and quiz quality in testing
 
 
 def extract_text_from_pdf(file_bytes):
     reader = PdfReader(io.BytesIO(file_bytes))   # normal pdfs with selectable text just extract directly
-=======
-# groq has a context limit, cutting off at 12000 chars was the sweet spot
-MAX_TEXT_LENGTH = 12000
-
-
-def extract_text_from_pdf(file_bytes):
-    # normal pdfs with selectable text, just extract directly
-    reader = PdfReader(io.BytesIO(file_bytes))
->>>>>>> 297ac9d2b883e1221d3d7f66e6285871cbfec0ff
     text = ""
     for page in reader.pages:
         text += page.extract_text() or ""
@@ -41,24 +31,14 @@ def extract_text_from_pdf(file_bytes):
 
 
 def ocr_with_gemini(file_bytes):
-<<<<<<< HEAD
     reader = PdfReader(io.BytesIO(file_bytes))  # scanned pdfs have no selectable text, so we pull the images out and send them to gemini
-=======
-    # scanned pdfs have no selectable text, so we pull the images out and send them to gemini
-    reader = PdfReader(io.BytesIO(file_bytes))
->>>>>>> 297ac9d2b883e1221d3d7f66e6285871cbfec0ff
     all_text = []
 
     for page in reader.pages:
         img_list = page.images
         for img in img_list:
             img_bytes = img.data
-<<<<<<< HEAD
             img_b64 = base64.b64encode(img_bytes).decode("utf-8")  # gemini needs base64 encoded images
-=======
-            # gemini needs base64 encoded images
-            img_b64 = base64.b64encode(img_bytes).decode("utf-8")
->>>>>>> 297ac9d2b883e1221d3d7f66e6285871cbfec0ff
             response = gemini_model.generate_content([
                 {"mime_type": "image/jpeg", "data": img_b64},
                 "Transcribe all text from this image exactly."
@@ -80,10 +60,7 @@ def generate_quiz(text, question_count, question_types, difficulty):
 
     # the prompt took a while to get right
     # groq kept returning different formats so had to be very specific with the rules
-<<<<<<< HEAD
 
-=======
->>>>>>> 297ac9d2b883e1221d3d7f66e6285871cbfec0ff
     prompt = f"""You are a quiz generator. Generate {question_count} questions from the text below.
 
 Question types to use: {type_str}
@@ -118,19 +95,11 @@ Document:
     response = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-<<<<<<< HEAD
         temperature=0.3   # lower temperature = more consistent json output
     )
 
     raw = response.choices[0].message.content
     
-=======
-        temperature=0.3  # lower temperature = more consistent json output
-    )
-
-    raw = response.choices[0].message.content
-
->>>>>>> 297ac9d2b883e1221d3d7f66e6285871cbfec0ff
     # groq wraps the json in markdown fences sometimes even when you tell it not to
     raw = re.sub(r'^```json', '', raw.strip())
     raw = re.sub(r'^```', '', raw.strip())
