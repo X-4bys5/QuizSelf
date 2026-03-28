@@ -1,4 +1,4 @@
-# quizself
+# QuizSelf
 
 upload a pdf and get quiz questions generated from it. i made this to study for exams by uploading my notes and quizzing myself on them. supports normal and scanned pdfs.
 
