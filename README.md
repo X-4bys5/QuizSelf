@@ -12,7 +12,7 @@ Upload a PDF and get AI-generated quiz questions from it. Supports normal and sc
 ## Stack
 
 - Python + Flask
-- Groq API (Llama 3.3 70B) for question generation
+- Groq API for question generation
 - Gemini API for OCR on scanned PDFs
 - PyMuPDF for PDF text extraction
 - Plain HTML, CSS, JS frontend
