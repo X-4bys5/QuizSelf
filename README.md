@@ -1,4 +1,4 @@
-# QuizCraft
+# QuizSelf
 
 Upload a PDF and get AI-generated quiz questions from it. Supports normal and scanned PDFs. Built with Python and Flask.
 
@@ -43,4 +43,4 @@ python app.py
 ```
 
 Open http://localhost:5000
-# QuizSelf
+
