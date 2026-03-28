@@ -1,46 +1,47 @@
-# QuizSelf
+# quizself
 
-Upload a PDF and get AI-generated quiz questions from it. Supports normal and scanned PDFs. Built with Python and Flask.
+upload a pdf and get quiz questions generated from it. i made this to study for exams by uploading my notes and quizzing myself on them. supports normal and scanned pdfs.
 
-## How it works
+## how it works
 
-- Normal PDFs get text extracted directly
-- Scanned PDFs get sent to Gemini for OCR
-- Extracted text gets sent to Groq (Llama 3.3) to generate questions
-- Supports MCQ, True/False, and Theory questions with difficulty settings
+- normal pdfs get text extracted directly with pymupdf
+- scanned pdfs (no selectable text) get sent to gemini for ocr
+- the extracted text goes to groq (llama 3.3) which generates the questions
+- supports mcq, true/false, and theory questions
+- you can set difficulty and how many questions you want
 
-## Stack
+## stack
+```
+- python + flask
+- groq api for generating questions
+- gemini api for ocr on scanned pdfs
+- pymupdf for text extraction
+- html css js frontend
+```
+## setup
 
-- Python + Flask
-- Groq API for question generation
-- Gemini API for OCR on scanned PDFs
-- PyMuPDF for PDF text extraction
-- Plain HTML, CSS, JS frontend
-
-## Setup
-
-You need two free API keys:
-- Groq: https://console.groq.com
-- Gemini: https://aistudio.google.com
-
-```bash
+you need two free api keys:
+- groq: https://console.groq.com
+- gemini: https://aistudio.google.com
+```
+git clone https://github.com/X-4bys5/QuizSelf.git
+cd QuizSelf
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 ```
-
-And add chnage the following the in the .env
-
+create a .env file and add:
 ```
 GROQ_API_KEY=your_key
 GEMINI_API_KEY=your_key
 ```
-
-Run it:
-
-```bash
+run:
 python app.py
-```
 
-Open http://localhost:5000
+open http://localhost:5000
 
+## known issues
+
+- scanned pdfs with really bad quality sometimes return garbage text
+- groq occasionally wraps the json response in markdown even when told not to, theres a fix in the code for this but it doesnt always catch everything
+- theory questions can sometimes be vague depending on the pdf
