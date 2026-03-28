@@ -14,14 +14,17 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# groq for question generation, gemini for ocr on scanned pdfs
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 
+# groq has a context limit, cutting off at 12000 chars was the sweet spot
 MAX_TEXT_LENGTH = 12000
 
 
 def extract_text_from_pdf(file_bytes):
+    # normal pdfs with selectable text, just extract directly
     reader = PdfReader(io.BytesIO(file_bytes))
     text = ""
     for page in reader.pages:
@@ -30,6 +33,7 @@ def extract_text_from_pdf(file_bytes):
 
 
 def ocr_with_gemini(file_bytes):
+    # scanned pdfs have no selectable text, so we pull the images out and send them to gemini
     reader = PdfReader(io.BytesIO(file_bytes))
     all_text = []
 
@@ -37,6 +41,7 @@ def ocr_with_gemini(file_bytes):
         img_list = page.images
         for img in img_list:
             img_bytes = img.data
+            # gemini needs base64 encoded images
             img_b64 = base64.b64encode(img_bytes).decode("utf-8")
             response = gemini_model.generate_content([
                 {"mime_type": "image/jpeg", "data": img_b64},
@@ -50,12 +55,15 @@ def ocr_with_gemini(file_bytes):
 def generate_quiz(text, question_count, question_types, difficulty):
     type_str = ", ".join(question_types)
 
+    # medium is the default, easy was too surface level in testing
     difficulty_note = {
         "Easy": "Focus on basic facts and definitions.",
         "Medium": "Focus on relationships and comparisons.",
         "Hard": "Focus on synthesis, implications and subtle details."
     }.get(difficulty, "Focus on relationships and comparisons.")
 
+    # the prompt took a while to get right
+    # groq kept returning different formats so had to be very specific with the rules
     prompt = f"""You are a quiz generator. Generate {question_count} questions from the text below.
 
 Question types to use: {type_str}
@@ -90,14 +98,17 @@ Document:
     response = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.3
+        temperature=0.3  # lower temperature = more consistent json output
     )
 
     raw = response.choices[0].message.content
+
+    # groq wraps the json in markdown fences sometimes even when you tell it not to
     raw = re.sub(r'^```json', '', raw.strip())
     raw = re.sub(r'^```', '', raw.strip())
     raw = re.sub(r'```$', '', raw.strip())
 
+    # grab just the json part in case theres extra text before or after it
     first_brace = raw.find('{')
     last_brace = raw.rfind('}')
     if first_brace != -1 and last_brace != -1:
@@ -126,6 +137,7 @@ def upload():
     try:
         text = extract_text_from_pdf(file_bytes)
 
+        # less than 100 chars basically means the pdf is scanned, switch to ocr
         if len(text) < 100:
             text = ocr_with_gemini(file_bytes)
 
