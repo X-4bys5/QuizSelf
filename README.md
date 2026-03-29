@@ -6,7 +6,7 @@ upload a pdf and get quiz questions generated from it. i made this to study for 
 
 - normal pdfs get text extracted directly with pymupdf
 - scanned pdfs (no selectable text) get sent to gemini for ocr
-- the extracted text goes to groq (llama 3.3) which generates the questions
+- the extracted text goes to groq which generates the questions
 - supports mcq, true/false, and theory questions
 - you can set difficulty and how many questions you want
 
