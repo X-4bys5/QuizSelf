@@ -1,47 +1,53 @@
 # QuizSelf
 
-upload a pdf and get quiz questions generated from it. i made this to study for exams by uploading my notes and quizzing myself on them. supports normal and scanned pdfs.
+Upload any PDF and get AI-generated quiz questions from it automatically. 
+Works with both normal and scanned PDFs.
 
-## how it works
+🔗 Live Demo: https://quizself-1.onrender.com
 
-- normal pdfs get text extracted directly with pymupdf
-- scanned pdfs (no selectable text) get sent to gemini for ocr
-- the extracted text goes to groq which generates the questions
-- supports mcq, true/false, and theory questions
-- you can set difficulty and how many questions you want
+## What it does
 
-## stack
-```
-- python + flask
-- groq api for generating questions
-- gemini api for ocr on scanned pdfs
-- pymupdf for text extraction
-- html css js frontend
-```
-## setup
+You upload a PDF, it reads it and generates quiz questions from the actual 
+content. Supports MCQ, True/False, and Theory questions. You can also pick 
+the difficulty level — easy, medium, or hard.
 
-you need two free api keys:
-- groq: https://console.groq.com
-- gemini: https://aistudio.google.com
-```
+The cool part is it handles scanned PDFs too. If normal text extraction 
+fails it automatically falls back to Gemini's vision API to OCR the 
+document, so both cases work in a single upload flow.
+
+## Stack
+
+* Python + Flask
+* Groq API (Llama 3.3 70B) for question generation
+* Google Gemini API for OCR on scanned/image-based PDFs
+* PyMuPDF for direct PDF text extraction
+* Plain HTML, CSS, JS frontend
+* Deployed on Render
+
+## Setup
+
+You need two free API keys:
+* Groq: https://console.groq.com
+* Gemini: https://aistudio.google.com
 git clone https://github.com/X-4bys5/QuizSelf.git
 cd QuizSelf
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-```
-create a .env file and add:
-```
+
+Create a `.env` file and add your keys:
 GROQ_API_KEY=your_key
 GEMINI_API_KEY=your_key
-```
-run:
+
+Then run it:
 python app.py
 
-open http://localhost:5000
+Open http://localhost:5000 and upload a PDF.
 
-## known issues
+## How it works
 
-- scanned pdfs with really bad quality sometimes return garbage text
-- groq occasionally wraps the json response in markdown even when told not to, theres a fix in the code for this but it doesnt always catch everything
-- theory questions can sometimes be vague depending on the pdf
+1. You upload a PDF
+2. App tries to extract text directly using PyMuPDF
+3. If that fails (scanned PDF), it falls back to Gemini OCR
+4. Extracted text gets sent to Groq with a prompt to generate questions
+5. Questions come back structured by type and difficulty
