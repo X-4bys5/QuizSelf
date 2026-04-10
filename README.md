@@ -42,8 +42,6 @@ GEMINI_API_KEY=your_key
 Then run it:
 python app.py
 
-Open http://localhost:5000 and upload a PDF.
-
 ## How it works
 
 1. You upload a PDF
